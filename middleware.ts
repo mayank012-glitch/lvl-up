@@ -1,0 +1,2 @@
+import {NextResponse,type NextRequest} from 'next/server';
+export function middleware(request:NextRequest){const response=NextResponse.next();const path=request.nextUrl.pathname;if(path==='/my-result'||path.startsWith('/entry/')||path==='/register'||path.startsWith('/admin')||path.startsWith('/api/')){response.headers.set('Cache-Control','private, no-store');response.headers.set('X-Robots-Tag','noindex');}return response;}

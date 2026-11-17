@@ -1,0 +1,41 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1789669520282,
+      "tag": "0000_confused_prima",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1789670446450,
+      "tag": "0001_flat_iron_patriot",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1789705831300,
+      "tag": "0002_freezing_blackheart",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1790072758104,
+      "tag": "0003_ordinary_morph",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1792739362710,
+      "tag": "0004_boring_deathstrike",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+"use client";
+import { useEffect, useRef, useState } from "react";
+import type { ContentRecord } from "@/lib/content";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {SessionFields} from '@/components/session-fields';
+import {EventDateFields} from "@/components/event-date-fields";
+import {getEventDates,formatEventDates} from "@/lib/event-dates";
+export function ContentAdmin({initial,onChanged}: {initial:ContentRecord[];onChanged?:(items:ContentRecord[])=>void}) {
+ const [items,setItems]=useState(initial), [kind,setKind]=useState<"event"|"brand">("event"), [editing,setEditing]=useState<ContentRecord|null>(null), [busy,setBusy]=useState(false), [message,setMessage]=useState(""), [remove,setRemove]=useState<string|null>(null);
+ const [editorVersion,setEditorVersion]=useState(0);
+ const formRef=useRef<HTMLFormElement>(null);
+ useEffect(()=>{
+  function openSection(){const hash=window.location.hash;if(hash!=='#admin-events'&&hash!=='#admin-brands')return;setKind(hash==='#admin-brands'?'brand':'event');setEditing(null);setMessage('');}
+  openSection();window.addEventListener('hashchange',openSection);return()=>window.removeEventListener('hashchange',openSection);
+ },[]);
+ useEffect(()=>{const id=kind==='event'?'admin-events':'admin-brands';if(window.location.hash==='#'+id){const frame=requestAnimationFrame(()=>document.getElementById(id)?.scrollIntoView({block:'start'}));return()=>cancelAnimationFrame(frame);}},[kind]);
+ async function refresh(){const r=await fetch("/api/content",{cache:"no-store"});if(!r.ok)throw new Error("Saved, but the list could not refresh. Reload to view your changes.");const updated=await r.json() as ContentRecord[];setItems(updated);onChanged?.(updated);}
+ async function save(event:React.FormEvent<HTMLFormElement>){event.preventDefault();setBusy(true);setMessage("");try{const r=await fetch("/api/content",{method:"POST",body:new FormData(event.currentTarget)});const data=await r.json() as {error?:string};if(!r.ok)throw new Error(data.error);await refresh();setEditing(null);setEditorVersion(v=>v+1);formRef.current?.reset();setMessage("Saved. Event visibility follows its status.");}catch(e){setMessage(e instanceof Error?e.message:"Unable to save. Please retry.");}finally{setBusy(false);}}
+ async function deleteItem(id:string){setBusy(true);setMessage("");try{const r=await fetch("/api/content",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})});const data=await r.json() as {error?:string};if(!r.ok)throw new Error(data.error);await refresh();setRemove(null);if(editing?.id===id)setEditing(null);setMessage("Updated. Archived events retain their registrations and results.");}catch(e){setMessage(e instanceof Error?e.message:"Unable to remove. Please retry.");}finally{setBusy(false);}}
+ return <div className="content-admin" id={kind==='event'?'admin-events':'admin-brands'}><div className="admin-type-buttons">{(["event","brand"] as const).map(value=><Button key={value} disabled={busy} variant={kind===value?"default":"outline"} onClick={()=>{setKind(value);setEditing(null);setMessage("");window.history.replaceState(null,'',value==='event'?'#admin-events':'#admin-brands');}}>{value==="event"?"Event locations":"Associated brands"}</Button>)}</div>
+ <div className="admin-layout"><form ref={formRef} key={kind+(editing?.id||"new")+editorVersion} onSubmit={save} className="admin-editor"><h2>{editing?"Edit":"Add"} {kind}</h2><p>{kind==="event"?"A venue, city, event dates and image are required. Choose Upcoming to open registration after adding sessions. Drafts and archived events stay hidden.":"Add only confirmed associated brands. Save a name and logo to show the brand at the bottom of the landing page."}</p><fieldset disabled={busy}><input type="hidden" name="kind" value={kind}/>{editing&&<input type="hidden" name="id" value={editing.id}/>}
+ <label className="field">{kind==="event"?"Event name":"Brand name"}<Input name="title" required maxLength={100} defaultValue={editing?.title}/></label>
+ {kind==="event"&&<><label className="field">Venue name<Input name="location" required maxLength={180} defaultValue={editing?.location}/></label><label className="field">City name<Input name="city" required maxLength={100} defaultValue={editing?.city}/></label><EventDateFields initial={editing?getEventDates(editing):[]}/>
+ <label className="field">Status<select name="status" defaultValue={editing?.status||'draft'}><option value="draft">Draft</option><option value="upcoming">Upcoming — registration open</option><option value="closed">Registration closed</option><option value="completed">Completed</option><option value="archived">Archived</option></select></label>
+ <label className="field">Registration closing date (optional)<Input type="date" name="closing" defaultValue={editing?.closing}/></label>
+ <SessionFields initial={editing?.sessions}/>
+ <label className="field">Reporting instructions (optional)<Input name="reporting" maxLength={300} defaultValue={editing?.reporting}/></label>
+ <label className="field">Venue address (optional)<Input name="address" maxLength={500} defaultValue={editing?.address}/></label>
+ <label className="field">Organiser contact (required to open registration)<Input name="contact" maxLength={200} defaultValue={editing?.contact}/></label></>}
+ <label className="field">{kind==="event"?"Event image":"Brand logo"}<Input type="file" name="image" accept="image/jpeg,image/png,image/webp" required={!editing}/><small>JPG, PNG or WebP · Maximum 5 MB{editing?" · Leave empty to keep the current image":""}</small></label>
+ {editing&&<img className="admin-current-image" src={"/media/"+editing.image} alt={editing.title}/>}
+ <div className="admin-actions"><Button type="submit">{busy?"Saving…":editing?"Save changes":"Save and publish"}</Button>{editing&&<Button type="button" variant="outline" onClick={()=>setEditing(null)}>Cancel edit</Button>}</div></fieldset></form>
+ <section className="admin-items" aria-label="Published content"><h2>Published {kind==="event"?"events":"brands"}</h2>{!items.some(i=>i.kind===kind)&&<p>Nothing added yet. This section stays hidden on the landing page until you publish an item.</p>}
+ {items.filter(i=>i.kind===kind).map(item=><article className="admin-item" key={item.id}><img src={"/media/"+item.image} alt={item.title}/><div><h3>{item.title}</h3>{kind==="event"&&<p className="status-label">{item.status}</p>}{kind==="event"&&<p>{item.location}{item.city?", "+item.city:""}<br/>{formatEventDates(item)}</p>}<div className="admin-actions"><Button disabled={busy} variant="outline" onClick={()=>{setEditing(item);setMessage("");}}>Edit</Button><Button disabled={busy} variant="outline" onClick={()=>setRemove(item.id)}>{kind==="event"?"Archive":"Remove"}</Button></div>{remove===item.id&&<div className="remove-confirm"><p>{kind==="event"?"Archive this event? Registrations and results will be retained.":"Remove this brand?"}</p><Button disabled={busy} onClick={()=>deleteItem(item.id)}>Confirm</Button><Button disabled={busy} variant="outline" onClick={()=>setRemove(null)}>Keep it</Button></div>}</div></article>)}</section></div><p className="admin-message" role="status">{message}</p></div>;
+}

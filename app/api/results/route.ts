@@ -1,0 +1,22 @@
+import {isAdmin} from '@/lib/admin';import {getChatGPTUser} from '@/app/chatgpt-auth';import {contentDb,type ContentRecord} from '@/lib/content';import {eventHasHappened,parseResults,type RaceResult} from '@/lib/results-validation';import {lastEventDate} from '@/lib/event-dates';import {json,sameOrigin} from '@/lib/http';import {ageCategory} from '@/lib/event-state';
+export const dynamic='force-dynamic';
+async function auth(r?:Request){return await isAdmin()&&(!r||sameOrigin(r));}
+export async function GET(request:Request){if(!await auth())return json({error:'Admin access required.'},403);try{const eventId=new URL(request.url).searchParams.get('event');return json((await contentDb().prepare('SELECT id,uploaded,action FROM result_history WHERE event_id=? ORDER BY uploaded DESC').bind(eventId).all()).results);}catch{return json({error:'History unavailable.'},503);}}
+export async function POST(request:Request){if(!await auth(request))return json({error:'Admin access required.'},403);try{
+ const f=await request.formData(),eventId=String(f.get('eventId')||''),mode=String(f.get('mode')||''),db=contentDb();
+ const event=await db.prepare("SELECT * FROM site_content WHERE id=? AND kind='event'").bind(eventId).first<ContentRecord>();if(!event||!eventHasHappened(lastEventDate(event)))return json({error:'Choose an event that has taken place.'},400);
+ let rows:RaceResult[];
+ if(mode==='restore'){const prior=await db.prepare('SELECT rows FROM result_history WHERE id=? AND event_id=?').bind(String(f.get('version')),eventId).first<{rows:string}>();if(!prior)return json({error:'Version not found.'},404);rows=JSON.parse(prior.rows);}
+ else{const file=f.get('file');if(!(file instanceof File)||file.size>2*1024*1024)return json({error:'Choose a CSV smaller than 2 MB.'},400);try{rows=parseResults(await file.text());}catch(e){return json({error:e instanceof Error?e.message:'Invalid CSV'},400);}}
+ const registered=(await db.prepare('SELECT id,child_name,school,age FROM registrations WHERE event_id=?').bind(eventId).all<{id:string;child_name:string;school:string;age:number}>()).results;
+ const byId=new Map(registered.map(r=>[r.id,r]));
+ for(const row of rows){if(!row.participantId&&registered.length&&mode!=='restore')return json({error:'This event has registered participants. Add participant_id from the registration export to every result.'},400);if(row.participantId){const entry=byId.get(row.participantId);if(!entry)return json({error:'Participant ID does not belong to this event: '+row.participantId},400);if(row.ageCategory!==ageCategory(entry.age))return json({error:'Age category does not match registration for '+row.participantId},400);row.participant=entry.child_name;row.school=entry.school;delete row.accountEmail;}}
+ if(mode==='preview')return json({rows,count:rows.length});
+ if(!['publish','restore'].includes(mode)||f.get('completed')!=='yes')return json({error:'Preview the results and confirm completion before publishing.'},400);
+ const now=new Date().toISOString(),actor=(await getChatGPTUser())!.userId;
+ await db.batch([
+ db.prepare("INSERT INTO result_history(id,event_id,rows,uploaded,actor,action) SELECT ?,event_id,rows,?,?,? FROM event_results WHERE event_id=?").bind(crypto.randomUUID(),now,actor,'Before '+mode,eventId),
+ db.prepare('INSERT INTO event_results(event_id,rows,uploaded) VALUES(?,?,?) ON CONFLICT(event_id) DO UPDATE SET rows=excluded.rows,uploaded=excluded.uploaded').bind(eventId,JSON.stringify(rows),now),
+ db.prepare('INSERT INTO result_history(id,event_id,rows,uploaded,actor,action) VALUES(?,?,?,?,?,?)').bind(crypto.randomUUID(),eventId,JSON.stringify(rows),now,actor,mode==='restore'?'Restored':'Published')]);return json({count:rows.length});
+ }catch(e){console.error('Results operation failed',e);return json({error:'Unable to update results. Please retry.'},503);}}
+export async function DELETE(request:Request){if(!await auth(request))return json({error:'Admin access required.'},403);try{const {eventId}=await request.json() as {eventId?:unknown};if(typeof eventId!=='string')return json({error:'Choose an event.'},400);const db=contentDb();await db.batch([db.prepare("INSERT INTO result_history(id,event_id,rows,uploaded,actor,action) SELECT ?,event_id,rows,?,?, 'Unpublished' FROM event_results WHERE event_id=?").bind(crypto.randomUUID(),new Date().toISOString(),(await getChatGPTUser())!.userId,eventId),db.prepare('DELETE FROM event_results WHERE event_id=?').bind(eventId)]);return json({ok:true});}catch{return json({error:'Unable to unpublish.'},503);}}

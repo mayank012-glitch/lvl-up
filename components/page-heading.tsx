@@ -1,0 +1,1 @@
+export function PageHeading({ kicker, title, intro }: { kicker: string; title: string; intro: string }) { return <div className="page-heading"><p className="section-kicker">{kicker}</p><h1>{title}</h1><p>{intro}</p></div>; }

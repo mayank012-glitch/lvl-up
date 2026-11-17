@@ -1,0 +1,159 @@
+/* Shared LVL Up surfaces: the same texture and glass treatment on every page. */
+:root {
+ --race-glass-surface:linear-gradient(135deg,rgba(255,255,255,.13),rgba(255,255,255,.035));
+ --race-glass-border:rgba(255,255,255,.44);
+ --race-glass-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 20px 60px rgba(0,0,0,.35);
+ --race-page-texture:radial-gradient(ellipse at 100% 8%,rgba(200,255,0,.065),transparent 45%),repeating-linear-gradient(126deg,rgba(255,255,255,.018) 0 1px,transparent 1px 4px);
+ --race-neon-stripes:repeating-linear-gradient(126deg,transparent 0 108px,rgba(200,255,0,.38) 109px 110px,rgba(200,255,0,.065) 111px 133px,transparent 134px 225px);
+ --background:#090b0b;--foreground:#fff;--card:#151a17;--card-foreground:#fff;--popover:#141915;--popover-foreground:#fff;
+}
+.race-theme {background-color:#090b0b;background-image:var(--race-page-texture);}
+.race-theme>main:is(.inner-page,.landing,.offline-page) {position:relative;isolation:isolate;background-color:#090b0b;background-image:var(--race-page-texture);color:#fff;}
+.race-theme>main:is(.inner-page,.landing,.offline-page)::before {content:"";position:absolute;right:0;top:0;width:34%;height:640px;z-index:-1;pointer-events:none;background:var(--race-neon-stripes);mask-image:linear-gradient(to bottom,#000,transparent 90%);}
+.race-theme .stations-page::after {display:none;}
+.race-theme .site-header {background:rgba(9,11,11,.86);border-bottom-color:rgba(255,255,255,.23);-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);box-shadow:inset 0 -1px 0 rgba(255,255,255,.05);}
+.race-theme :is(.event-tile,.registration-form,.results-empty,.ready-card,.personal-result,.entry-pass,.success-card,.result-card,.info-card,.format-card,.admin-editor,.results-upload form,.leaderboard-wrap,.event-format-table.table-scroll,.table-scroll,.station-showcase-panel) {
+ background:var(--race-glass-surface);border:1px solid var(--race-glass-border);border-radius:10px;box-shadow:var(--race-glass-shadow);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);color:#fff;
+}
+.race-theme .event-tile {overflow:hidden;}
+.race-theme .entry-pass .pass-qr {background:#fff;color:#090b0b;}
+.race-theme .parent-faq [data-slot="accordion-item"] {padding:0 22px;margin-bottom:12px;border:1px solid rgba(255,255,255,.3);border-radius:8px;background:var(--race-glass-surface);box-shadow:inset 0 1px 0 rgba(255,255,255,.24);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);}
+.race-theme .landing :is(.partners-section,.landing-footer) {background:transparent;}
+.race-theme .landing .race-ribbon {background:var(--race-glass-surface);border-color:rgba(200,255,0,.26);box-shadow:inset 0 1px 0 rgba(255,255,255,.2);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);}
+.race-theme .landing .about-race {position:relative;}
+.race-theme :is(.admin-item,.account-strip,.session-editor,.confirmation-banner) {background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border-color:rgba(255,255,255,.24);}
+.race-theme .results-upload select {background:#101611;color:#fff;border-color:rgba(255,255,255,.4);}
+.race-theme .button-ghost {background:var(--race-glass-surface);border-color:rgba(255,255,255,.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.25);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);}
+.race-theme .sponsor-carousel-group {gap:72px;padding:24px 36px;}
+.race-theme .sponsor-carousel-group figure {flex:0 0 284px;width:284px;}
+.race-theme .sponsor-carousel-group img {width:284px;height:152px;object-fit:contain;}
+.race-theme .sponsor-carousel-viewport {mask-image:linear-gradient(to right,transparent,#000 3%,#000 97%,transparent);}
+.race-theme .sponsor-carousel {--sponsor-optical-scale:1;}
+.race-theme .sponsor-carousel-group figure {display:flex;align-items:center;justify-content:center;min-height:164px;}
+.race-theme .sponsor-carousel-group figure.sponsor-optical-logo {flex:0 0 auto;width:max(calc(284px * var(--sponsor-optical-scale)),calc(var(--logo-width) * var(--sponsor-optical-scale)));}
+.race-theme .sponsor-optical-logo .sponsor-logo-artwork {display:block;position:relative;overflow:hidden;width:calc(var(--logo-width) * var(--sponsor-optical-scale));height:calc(var(--logo-height) * var(--sponsor-optical-scale));}
+.race-theme .sponsor-optical-logo .sponsor-logo-artwork img {position:absolute;left:var(--logo-left);top:var(--logo-top);width:var(--logo-image-width);max-width:none;height:auto;object-fit:initial;}
+@media(max-width:640px){.race-theme .sponsor-carousel{--sponsor-optical-scale:.7323943662;}.race-theme .sponsor-carousel-group figure{min-height:124px;}}
+.race-theme .offline-page>div {padding:36px;background:var(--race-glass-surface);border:1px solid var(--race-glass-border);border-radius:10px;box-shadow:var(--race-glass-shadow);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);}
+@media(max-width:850px){.race-theme>main:is(.inner-page,.landing,.offline-page)::before{width:55%;opacity:.65;}}
+@media(max-width:640px){.race-theme .sponsor-carousel-group{gap:40px;padding:20px 24px;}.race-theme .sponsor-carousel-group figure{flex-basis:208px;width:208px;}.race-theme .sponsor-carousel-group img{width:208px;height:120px;}.race-theme .offline-page>div{padding:26px;}}
+@media(prefers-reduced-motion:reduce){.race-theme .sponsor-carousel-viewport{mask-image:none;}}
+@media print {
+ .race-theme>main:is(.inner-page,.landing,.offline-page){background:#fff!important;color:#000!important;}
+ .race-theme>main::before{display:none!important;}
+ .race-theme :is(.entry-pass,.personal-result){background:#fff!important;color:#000!important;box-shadow:none!important;-webkit-backdrop-filter:none;backdrop-filter:none;}
+}
+
+/* Keep the brand and every navigation label in a single header row. */
+.race-theme .nav-shell {gap:24px;min-width:0;flex-wrap:nowrap;}
+.race-theme .nav-links {display:flex;position:static;flex-direction:row;flex-wrap:nowrap;align-items:center;min-width:0;max-width:100%;max-height:none;overflow-x:auto;overflow-y:hidden;gap:6px;padding:6px 2px;border:0;background:transparent;scrollbar-width:thin;scrollbar-color:#515a40 transparent;}
+.race-theme .nav-links a {flex:0 0 auto;white-space:nowrap;min-height:44px;}
+.race-theme .nav-links a svg {display:none;}
+.race-theme .nav-links .nav-register {margin:0 0 0 8px;}
+@media(max-width:1100px){.race-theme .nav-shell{gap:16px;}.race-theme .nav-links{gap:2px;}.race-theme .nav-links a{font-size:14px;padding:10px;}.race-theme .nav-links .nav-register{padding-inline:12px;margin-left:4px;}}
+@media(max-width:640px){.race-theme .nav-shell{gap:12px;}.race-theme .nav-links a{padding:10px 12px;}}
+
+/* Compact, restrained FAQ and a single-purpose footer. */
+.race-theme .parent-faq {max-width:720px;padding-block:56px;}
+.race-theme .parent-faq h2 {font-size:clamp(27px,3.2vw,38px);margin:14px 0 24px;}
+.race-theme .parent-faq [data-slot="accordion-item"] {padding:0 16px;margin-bottom:8px;border-color:rgba(255,255,255,.2);border-radius:7px;}
+.race-theme .parent-faq [data-slot="accordion-trigger"] {align-items:center;padding-block:14px;min-height:48px;font-size:15px;line-height:1.4;}
+.race-theme .parent-faq [data-slot="accordion-content"] {font-size:14px;line-height:1.65;}
+.race-theme .landing-footer {position:relative;background:transparent;border-top:1px solid rgba(255,255,255,.12);padding:28px 0;}
+.race-theme .landing-footer>.page-shell {justify-content:center;}
+.race-theme .landing-footer nav {margin:0;justify-content:center;align-items:center;gap:16px 32px;}
+.race-theme .landing-footer nav a {font-size:13px;letter-spacing:.02em;line-height:1.5;color:#c2c8c1;}
+.race-theme .landing-footer nav a:hover {color:var(--lime);}
+.support-contact {white-space:pre-wrap;overflow-wrap:anywhere;}
+@media(max-width:640px){.race-theme .parent-faq{padding-block:40px;}.race-theme .parent-faq [data-slot="accordion-trigger"]{padding-block:12px;font-size:14px;}.race-theme .landing-footer nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 24px;text-align:center;}.race-theme .landing-footer{padding:24px 0;}}
+
+.content-admin {scroll-margin-top:100px;}
+
+/* Preserve the complete landscape hero on phones and tablets. */
+@media(max-width:900px){
+ .race-theme .landing-hero {display:block;min-height:0;}
+ .race-theme .landing-hero-photo {position:relative;inset:auto;display:block;width:100%;height:auto;object-fit:contain;object-position:center;z-index:0;}
+ .race-theme .landing-hero-shade {display:block;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(5,9,6,.9),rgba(5,9,6,.62) 40%,rgba(5,9,6,.08) 85%);}
+ .race-theme .landing-hero-copy {position:absolute;inset:0;z-index:2;display:flex;align-items:center;width:100%;padding:clamp(18px,4vw,36px);}
+ .race-theme .landing-hero-copy h1 {margin:0;font-size:clamp(28px,7.2vw,64px);line-height:1;max-width:70%;text-shadow:0 2px 18px rgba(0,0,0,.3);}
+}
+
+.race-theme .landing-footer>.page-shell {flex-direction:column;gap:20px;}
+.race-theme .landing-footer .footer-admin-actions {display:flex;justify-content:center;gap:12px;flex-wrap:wrap;}
+.race-theme .landing-footer .footer-admin-actions .button {padding:10px 18px;min-height:40px;font-size:12px;}
+
+.station-carousel-cue {display:flex;align-items:center;justify-content:center;gap:18px;margin:22px auto 0;width:fit-content;}
+.station-carousel-dots {display:flex;align-items:center;padding:0 8px;border:1px solid rgba(255,255,255,.2);border-radius:40px;background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.025));box-shadow:inset 0 1px 0 rgba(255,255,255,.18);backdrop-filter:blur(18px);}
+.station-carousel-dots button {display:grid;place-items:center;width:36px;height:44px;padding:0;background:transparent;border:0;cursor:pointer;}
+.station-carousel-dots button span {display:block;width:6px;height:6px;border-radius:20px;background:rgba(255,255,255,.42);transition:width .24s ease,background .24s ease,box-shadow .24s ease;}
+.station-carousel-dots button[aria-current="true"] span {width:26px;background:#c8ff00;box-shadow:0 0 14px rgba(200,255,0,.3);}
+.station-carousel-dots button:focus-visible {outline:2px solid #c8ff00;outline-offset:0;border-radius:24px;}
+@media(prefers-reduced-motion:reduce){.station-carousel-dots button span{transition:none;}}
+
+/* Keep a complete station and its navigation within the mobile viewport. */
+@media(max-width:600px){
+ .race-theme .stations-page {padding:12px 0 18px;min-height:calc(100dvh - 72px);}
+ .race-theme .stations-page .stations-shell {width:calc(100% - 24px);}
+ .race-theme :is(.stations-page,.prizes-page) .page-heading {margin-bottom:10px;}
+ .race-theme .stations-page .page-heading .section-kicker {font-size:10px;margin-bottom:6px;}
+ .race-theme :is(.stations-page,.prizes-page) .page-heading h1 {font-size:clamp(22px,6vw,30px);line-height:1.05;margin:0;}
+ .race-theme .stations-page .page-heading>p:last-child {font-size:11px;line-height:1.35;margin:6px 0 0;}
+ .race-theme .station-showcase .station-jumps {padding:4px 0 8px;margin-bottom:4px;gap:6px;}
+ .race-theme .station-showcase .station-jumps button {min-height:38px;padding:9px 12px;font-size:12px;}
+ .race-theme .station-showcase .station-photo {height:auto;width:100%;display:block;align-self:start;background:transparent;}
+ .race-theme .station-showcase .station-photo img {display:block;width:100%;height:auto;max-height:none;object-fit:contain;}
+ .race-theme .station-showcase .station-content {padding:12px 14px;}
+ .race-theme .station-showcase .station-tag {font-size:9px;margin:0 0 5px;}
+ .race-theme .station-showcase .station-content h2 {font-size:25px;line-height:1.05;margin:0 0 8px;}
+ .race-theme .station-showcase .station-description {font-size:12px;line-height:1.45;margin:0 0 10px;}
+ .race-theme .station-showcase .station-content h3 {font-size:12px;margin:0 0 5px;}
+ .race-theme .station-showcase .station-pointers {font-size:12px;line-height:1.4;padding-left:16px;}
+ .race-theme .station-showcase .station-pointers li {margin:4px 0;}
+ .race-theme .station-showcase .station-extra {margin-top:10px;padding-top:7px;}
+ .race-theme .station-showcase .station-extra summary {font-size:11px;}
+ .race-theme .station-showcase .station-position {margin-top:8px;font-size:9px;}
+ .race-theme .station-carousel-cue {margin-top:8px;}
+}
+
+/* Reserve the full photo frame before lazy loading, at every screen size. */
+.race-theme .station-showcase .station-photo {
+ position:relative;aspect-ratio:3/2;width:100%;height:auto;min-width:0;min-height:0;
+ align-self:center;overflow:hidden;
+}
+.race-theme .station-showcase .station-photo img {
+ position:absolute;inset:0;display:block;width:100%;height:100%;max-width:100%;max-height:100%;
+ object-fit:contain;object-position:center;
+}
+@media(max-width:850px){.race-theme .station-showcase .station-photo{align-self:start;}}
+
+/* Use the same frame as the other stations and fill it without letterboxing. */
+.race-theme .station-showcase .station-photo[data-fit-full] img {
+ object-fit:cover;object-position:center bottom;
+}
+@media(min-width:851px){
+ .race-theme .station-showcase .station-photo[data-fit-full] {
+  align-self:stretch;aspect-ratio:auto;height:auto;
+ }
+}
+/* Sponsorship-deck wordmark, including the rising chevrons and angular UP. */
+.site-header .brand .brand-deck-logo{display:block;width:142px;height:48px;object-fit:contain;}
+@media(max-width:900px){.site-header .brand .brand-deck-logo{width:124px;height:42px;}}
+/* Hero headline: exactly 80% of its previous responsive font size. */
+.race-theme .landing-hero-copy h1{font-size:clamp(41.6px,5.44vw,76.8px);}
+@media(max-width:900px){.race-theme .landing-hero-copy h1{font-size:clamp(22.4px,5.76vw,51.2px);}}
+/* Matching black glass for FAQs, event cards and the hero race ribbon. */
+.race-theme .parent-faq [data-slot="accordion-item"],
+.race-theme .event-directory .event-tile,
+.race-theme .landing .race-ribbon {
+ background:linear-gradient(135deg,rgba(9,11,11,.97),rgba(4,5,5,.98));
+ border-color:rgba(255,255,255,.1);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.09),inset 0 -1px 0 rgba(0,0,0,.75),0 8px 24px rgba(0,0,0,.28);
+ -webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);
+}
+
+/* Align the shared Stations stripes on the left of every inner page. */
+.race-theme > main:is(.inner-page, .offline-page)::before {
+ left:0;
+ right:auto;
+ height:min(640px, 100%);
+}

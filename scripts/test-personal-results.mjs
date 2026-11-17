@@ -1,0 +1,25 @@
+// Isolated server-rendering checks. No network requests or live data writes.
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import ts from 'typescript';
+import React from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {parseResults,eventHasHappened} from '../lib/results-validation.ts';
+import {lastEventDate,formatEventDates} from '../lib/event-dates.ts';
+const base='rank,participant,school,age_category,total_time,score';
+assert.equal(parseResults(base+'\n1,Test,School,14-15,10:30,')[0].accountEmail,undefined);
+const csv=base+',account_email\n1,Owned result,School,14-15,10:30,5,OWNER@example.com';
+assert.equal(parseResults(csv)[0].accountEmail,'owner@example.com');
+assert.throws(()=>parseResults(csv.replace('OWNER@example.com','invalid')));
+let user=null,queries=0;
+const rows=[...parseResults(csv),...parseResults(csv.replace('Owned result','Other account result').replace('OWNER@example.com','other@example.com'))];
+globalThis.personalTestDeps={React,getChatGPTUser:async()=>user,chatGPTSignInPath:()=>'/signin-with-chatgpt',chatGPTSignOutPath:()=>'/signout-with-chatgpt',PageHeading:()=>null,eventHasHappened,lastEventDate,formatEventDates,contentDb:()=>{queries++;return {prepare:()=>({all:async()=>({results:[{title:'Completed test event',location:'Venue',city:'City',date:'2020-01-01',dates:'[]',rows:JSON.stringify(rows)}]})})};}};
+let source=readFileSync('app/my-result/page.tsx','utf8').replace(/^import .*;\n/gm,'');
+source='const {React,getChatGPTUser,chatGPTSignInPath,chatGPTSignOutPath,PageHeading,eventHasHappened,lastEventDate,formatEventDates,contentDb}=globalThis.personalTestDeps;\n'+source;
+const compiled=ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.React,module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
+const page=(await import('data:text/javascript;base64,'+Buffer.from(compiled).toString('base64'))).default;
+let html=renderToStaticMarkup(await page());assert.equal(queries,0);assert.ok(html.includes('Sign up / Log in'));assert.ok(!html.includes('Owned result'));
+user={email:'owner@example.com',userId:'test'};html=renderToStaticMarkup(await page());assert.ok(html.includes('Owned result'));assert.ok(!html.includes('Other account result'));assert.ok(!html.includes('other@example.com'));
+user={email:'nobody@example.com',userId:'other'};html=renderToStaticMarkup(await page());assert.ok(html.includes('No results published'));assert.ok(!html.includes('Owned result'));
+delete globalThis.personalTestDeps;
+console.log('Passed: signed-out result isolation, account-only result rendering, no-match empty state, legacy CSV support, email validation and 14–15 category.');
